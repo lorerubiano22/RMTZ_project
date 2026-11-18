@@ -93,7 +93,7 @@ equations maxrev, tariffborders, tariffstairs, border, flow,coupling1,coupling2;
 maxrev                 .. F - sum(zzpt(zz(i,j),pp,t),
                           (rev(i,j,pp,t))*X(zzpt)) =e= 0;
 tariffborders(zz) .. sum(zzpt(zz,pp,t), ord(t)*X(zzpt))
-                     - sum(speb(zz,h,k,u,v), Y(u,v))              =e= 1;
+                     - sum(speb(zz,h,k,u,v), (Y(u,v)+Y(v,u)))              =e= 1;
 tariffstairs(zz)  .. sum(zzpt(zz,pp,t), X(zzpt))                  =e= 1;
 border(uLv(u,v))  .. Y(v,u) + Y(u,v)                     =l= 1;
 flow(u)           .. sum(be(u,v), W(be)) - sum(be(v,u), W(be))    =e= 0;
