@@ -69,30 +69,30 @@ Uy(u,v)=0;
 Uy1(u,v)=0;
 
 **********+*******
-* Problem Lower *
+* Problem: District border network *
 **********+*******
 variables        F;
 binary variables Y;
 Positive Variable W;
 
 equations obj_lb, border, flow, degree,nntz,coupling1,coupling2;
-obj_lb            .. F=e=sum((u,v), uy(u,v)*(Y(u,v)));
+obj_lb            .. F=e=sum((u,v), uy(u,v)*(Y(u,v)+Y(v,u)));
 border(uLv(u,v))  .. Y(v,u) + Y(u,v)                     =l= 1;
 flow(u)           .. sum(be(u,v), W(be)) - sum(be(v,u), W(be))    =e= 0;
 *degree(u)         .. sum(be(u,v), W(be)) + sum(be(v,u), W(be))    =l= 2;
-nntz(zz) .. sum(speb(zz,h,k,u,v), Y(u,v))+1              =l= card(t);
+nntz(zz) .. sum(speb(zz,h,k,u,v),Y(u,v)+Y(v,u))+1              =l= card(t);
 coupling1(u,v) ..card(be)*Y(u,v)=g=W(u,v);
 coupling2(u,v) .. Y(u,v)=l=W(u,v);
 
 model netFlow_lb /obj_lb, border, flow, nntz,coupling1,coupling2/;
 **********+*******
-
-******** problem upper bound ****
+* Problem: District public trasnport network *
+**********+*******
 variables        F_up;
 binary variables X;
 
 equations obj_up,tariffstairs;
-obj_up            .. F_up=e= sum(zzpt(zz(ilj),pp,t),rev(ilj,pp,t)*X(zzpt))-sum((ilj,pp,t),uij(ilj)*ord(t)*X(ilj,pp,t))+sum((ilj),uij(ilj));
+obj_up            .. F_up=e= sum(zzpt(zz(ilj),pp,t),rev(ilj,pp,t)*X(zzpt))-sum((ilj,pp,t),uij(ilj)*ord(t)*X(ilj,pp,t))+ sum(zz(ilj),uij(ilj));
 
 tariffstairs(zz)  .. sum(zzpt(zz,pp,t), X(zzpt))                  =e= 1;
 model rev_ub /obj_up,tariffstairs/;
@@ -297,7 +297,7 @@ $offEcho
 solve netFlow_lb max F using mip;
         
 * Obtaining the values of x from the values of the variables y of the netFlow_lb Model
-    tij(ilj)=sum(speb(ilj,h,k,u,v), Y.l(u,v))+1;
+    tij(ilj)=sum(speb(ilj,h,k,u,v), Y.l(u,v)+Y.l(v,u))+1;
     x_lb(ilj,pp,t)$(tij(ilj)>0 and ord(t)= tij(ilj))=1;
     
 ********
@@ -307,7 +307,7 @@ LB(iter)=sum(zzpt(zz(ilj),pp,t),rev(ilj,pp,t)*x_lb(zzpt));
 ***************
 ** Computing violation
 abs_Viol=0;
-check_viol(ilj)=sum((t,pp),ord(t)*x.l(ilj,pp,t))-sum(speb(ilj,h,k,u,v),Y.l(u,v))-1;
+check_viol(ilj)=sum((t,pp),ord(t)*x.l(ilj,pp,t))-sum(speb(ilj,h,k,u,v),Y.l(u,v)+Y.l(v,u))-1;
 check_viol_control(ilj,iter)=check_viol(ilj);
 abs_Viol=sum((ilj),sqr(check_viol(ilj)));
 check_violIter(iter)=abs_Viol;
@@ -333,7 +333,7 @@ if(LB(iter)>LB_best(iter),
     Y_lbSol(n,m)=y.l(n,m);
     Y_upSol(n,m)=y.up(n,m);
     W_lbSol(n,m)=w.l(n,m);
-    check_viol1(ilj)=sum((t,pp),ord(t)*x_lbSol(ilj,pp,t))-sum(speb(ilj,h,k,u,v),Y_lbSol(u,v))-1;
+    check_viol1(ilj)=sum((t,pp),ord(t)*x_lbSol(ilj,pp,t))-sum(speb(ilj,h,k,u,v),Y_lbSol(u,v)+Y_lbSol(v,u))-1;
 
 );
 
